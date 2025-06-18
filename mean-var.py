@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
-from smooth import f_smooth
+from smooth import smooth
 
 
 plt.close('all')
@@ -38,7 +38,7 @@ colors = ['blue', 'red']
 labels = [r'$\tau = 1$', r'$\tau = 15$']
 
 for i, sp in enumerate(SP):
-    TPS = f_smooth(TPA, sp)
+    TPS = smooth(TPA, sp)
     YRS = YR[sp-1:]
     
     # 计算每年的加权全球平均值和方差

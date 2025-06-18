@@ -4,52 +4,51 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from scipy.stats import rankdata, norm, kendalltau
 from scipy.ndimage import gaussian_filter
-from copulas.bivariate import GaussianCopula
 from tqdm import tqdm
+from smooth import smooth  # Assuming smooth is defined in a separate module
 from tau_anomalies import tau__anomalies
 import cmocean.cm as cmo
+from copulas.multivariate import GaussianMultivariate
 
 
 # ========== Step 1: Read and prepare data ========== #
 def load_data(varname):
     path = f'ERA5SLP/mean_{varname}.nc'
     ds = xr.open_dataset(path)
-    var_data = ds[varname]
+    if varname == 'w':
+        var_data = ds['vertical_SW'] 
+    else:
+        var_data = ds[varname]
     # Ensure dimensions are in (lon, lat, time) order
-    if var_data.dims != ('longitude', 'latitude', 'time'):
-        var_data = var_data.transpose('longitude', 'latitude', 'time')
+    if var_data.dims != ('longitude', 'latitude', 'year'):
+        var_data = var_data.transpose('longitude', 'latitude', 'year')
     # Rename dimensions for consistency
-    return var_data.rename({'longitude': 'lon', 'latitude': 'lat'})
+    return var_data
 
-def smooth_data(data, sigma=1.0):
-    """Apply Gaussian smoothing to spatial data"""
-    smoothed_data = data.copy()
-    # Apply smoothing along spatial dimensions only
-    for t in range(data.sizes['time']):
-        slice_data = data.isel(time=t).values
-        smoothed_slice = gaussian_filter(slice_data, sigma=sigma)
-        smoothed_data[dict(time=t)] = (('lon', 'lat'), smoothed_slice)
-    return smoothed_data
 
 # Load and align variables
 tcwv = load_data('tcwv')        # Total Column Water Vapor
-omega = load_data('w')          # Vertical Wind (e.g. at 500 hPa)
+omega = load_data('w')          # Vertical Wind 
 precip = load_data('tp')        # Total Precipitation
 
+tau = 5  # Define tau threshold (adjust as needed)
+
 # Smooth the data
-tcwv_smooth = smooth_data(tcwv)
-omega_smooth = smooth_data(omega)
-precip_smooth = smooth_data(precip)
+tcwv_smooth = tcwv.rolling(year=tau, center=True).mean()
+omega_smooth = omega.rolling(year=tau, center=True).mean()
+precip_smooth = precip.rolling(year=tau, center=True).mean()
+
+print("Data loaded and smoothed successfully.")
 
 # Align dimensions & time
 tcwv_smooth, omega_smooth, precip_smooth = xr.align(tcwv_smooth, omega_smooth, precip_smooth)
 
 # ========== Step 2: Calculate precipitation anomalies using tau ========== #
 # Calculate standard anomalies
-precip_anom = precip_smooth - precip_smooth.mean(dim='time')
+precip_anom = precip_smooth - precip_smooth.mean(dim='year')
 
 # Calculate tau-based anomalies
-tau = 0.1  # Define tau threshold (adjust as needed)
+
 tau_anomalies = tau__anomalies(precip_smooth, tau=tau)
 
 # Get wet/dry masks using tau-based anomalies
@@ -61,35 +60,34 @@ def empirical_cdf(x):
     """Convert data to [0, 1] interval (empirical CDF)"""
     ranks = rankdata(x)
     return ranks / (len(x) + 1)
-
 def fit_gaussian_copula(x, y):
     """Fit Gaussian Copula and return correlation coefficient rho"""
     u = empirical_cdf(x)
     v = empirical_cdf(y)
     data_uv = np.column_stack((u, v))
-    cop = GaussianCopula()
+    cop = GaussianMultivariate()
     cop.fit(data_uv)
     return cop.covariance[0, 1]  # Return rho
 
 # ========== Step 4: Fit copula for each grid point ========== #
-lon = tcwv_smooth.lon.values
-lat = tcwv_smooth.lat.values
+lon = tcwv_smooth.longitude.values
+lat = tcwv_smooth.latitude.values
 rho_dry = np.full((len(lon), len(lat)), np.nan)
 rho_wet = np.full((len(lon), len(lat)), np.nan)
 
 for i in tqdm(range(len(lon))):
     for j in range(len(lat)):
         # Extract time series for each variable at this grid point
-        x = tcwv_smooth.isel(lon=i, lat=j).values
-        y = omega_smooth.isel(lon=i, lat=j).values
-        p = tau_anomalies.isel(lon=i, lat=j).values
+        x = tcwv_smooth.isel(longitude=i, latitude=j).values
+        y = omega_smooth.isel(longitude=i, latitude=j).values
+        p = tau_anomalies.isel(longitude=i, latitude=j).values
 
         if np.any(np.isnan(x)) or np.any(np.isnan(y)) or np.any(np.isnan(p)):
             continue
 
         # Get indices for wet and dry years
-        wet_idx = wet_mask.isel(lon=i, lat=j).values
-        dry_idx = dry_mask.isel(lon=i, lat=j).values
+        wet_idx = wet_mask.isel(longitude=i, latitude=j).values
+        dry_idx = dry_mask.isel(longitude=i, latitude=j).values
 
         # Fit copula
         try:
@@ -144,6 +142,6 @@ for i, (ax, data, title, cmap, vrange) in enumerate(zip(axs, data_list, titles, 
     ax.set_title(title, fontsize=12, fontweight='bold')
 
 plt.tight_layout()
-plt.savefig('/Users/ottodeng/Desktop/Fluctuation/results/relationship_analysis.png', 
-           bbox_inches='tight', dpi=300)
+plt.savefig('/Users/ottodeng/Desktop/Fluctuation/ERA5SLP/fig7/relationship_analysis.png', 
+           bbox_inches='tight', dpi=800)
 plt.show()
