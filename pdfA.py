@@ -28,7 +28,7 @@ WT = np.cos(np.radians(LAT))
 YR = np.arange(1940, 2025)
 
 # Calculate anomalies
-var_anomaly = var_data - np.mean(var_data, axis=0, keepdims=True)
+var_anomaly = var_data - np.mean(var_data, axis=2, keepdims=True) # axis 好像不应该是0！
 
 # Smoothing parameters and plotting
 SP = [5, 10, 15,20]  # tau values
