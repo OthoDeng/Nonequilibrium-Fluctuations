@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
 
-from smooth import f_smooth
+from smooth import smooth
 from whist import f_whist
 
 # Clear environment
@@ -27,14 +27,15 @@ LON, LAT = np.meshgrid(lon, lat)
 WT = np.cos(np.radians(LAT))
 YR = np.arange(1940, 2025)
 
+
 # Calculate anomalies
-var_anomaly = var_data - np.mean(var_data, axis=2, keepdims=True) # axis 好像不应该是0！
+var_anomaly = var_data - np.nanmean(var_data, axis=0, keepdims=True) 
 
 # Smoothing parameters and plotting
 SP = [5, 10, 15,20]  # tau values
 
 for ii, sp in enumerate(SP):
-    var_smoothed = f_smooth(var_anomaly, sp)
+    var_smoothed = smooth(var_anomaly, sp)
     YRS = YR[sp-1:]
     
     # Create time sampling every 5 years
@@ -62,7 +63,7 @@ for ii, sp in enumerate(SP):
         plt.xlim([-3, 3])
     else:
         plt.xlim([-4, 4])
-    plt.ylim(bottom=10**-3)
+    plt.ylim(bottom=10**-3) 
 
 # Adjust subplot spacing
 plt.subplots_adjust(hspace=0.3, wspace=0.3)
