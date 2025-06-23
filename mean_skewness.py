@@ -2,9 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
 from smooth import smooth
+from matplotlib.ticker import  MaxNLocator
 
 
-def mean_skewness(ax, var):
+def mean_skewness(ax, var, xlim=[-0.5, 0.5]):
     ds = xr.open_dataset(f'/Users/ottodeng/Desktop/Fluctuation/ERA5SLP/mean_{var}.nc')
     lat = ds['latitude'].values
     lon = ds['longitude'].values
@@ -48,10 +49,15 @@ def mean_skewness(ax, var):
         ax.scatter(MN[i, valid_idx], SK[i, valid_idx], c=colors[i], s=20, alpha=0.7, label=labels[i])
     ax.set_xlabel(f'$\\mu_A$', fontsize=14)
     ax.set_ylabel(f'$\\Delta \\beta_A$', fontsize=14)
+    ax.set_xlim(xlim)
+    ax.xaxis.set_major_locator(MaxNLocator(nbins=4))
+    ax.yaxis.set_major_locator(MaxNLocator(nbins=3))
+
     ax.legend()
     ax.grid(False)
 
 
+# Legacy code for plotting
 # plt.close('all')
 # fig, ax = plt.subplots(figsize=(8, 6), dpi=600)
 

@@ -1,11 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 import xarray as xr
 
 from smooth import smooth
 from whist import f_whist
 
-def pdfA(ax, var, SP):
+def pdfA(ax, var, SP, xlim=[-4, 4]):
     # Load data
     data = xr.open_dataset(f'/Users/ottodeng/Desktop/Fluctuation/ERA5SLP/mean_{var}.nc')
     lat = data['latitude'].values
@@ -38,12 +39,16 @@ def pdfA(ax, var, SP):
                 M = var_smoothed[idx, :, :]
                 ctX, N = f_whist(M, WT, np.linspace(np.nanmin(M), np.nanmax(M), 100))
                 ax.plot(ctX, N, color=CL[jj+2], linewidth=0.5)
+        ax.set_xlabel(r'$A\ (\mathrm{kg} \cdot \mathrm{m}^{-2})$', fontsize=10)
         ax.set_title(f'$\\tau={sp}$', fontsize=10)
         
-        ax.set_xlim([-4, 4])
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=5))  
+        ax.yaxis.set_major_locator(MaxNLocator(nbins=4))
+
+        ax.set_xlim(xlim)
         ax.set_yscale('log')
         ax.set_ylim(bottom=10**-3)
-    ax.set_ylabel('PDF')
+    ax.set_ylabel(r'PDF')
 
 
 # # Clear environment

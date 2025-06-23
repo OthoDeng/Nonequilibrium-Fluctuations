@@ -4,7 +4,7 @@ import xarray as xr
 from smooth import smooth
 
 
-def mean_var(ax, var):
+def mean_var(ax, var, xlim=[-0.5, 0.5]):
     ds = xr.open_dataset(f'/Users/ottodeng/Desktop/Fluctuation/ERA5SLP/mean_{var}.nc')
     lat = ds['latitude'].values
     lon = ds['longitude'].values
@@ -44,12 +44,22 @@ def mean_var(ax, var):
     ax.legend()
     ax.grid(False)
 
+    from matplotlib.ticker import  MaxNLocator
+
+    ax.set_xlim(xlim)
+    ax.xaxis.set_major_locator(MaxNLocator(nbins=4))  
+    ax.yaxis.set_major_locator(MaxNLocator(nbins=5))  
+
+    
+    # ax.set_xticklabels([])
+    # ax.set_yticklabels([])
+
 
 
 # plt.close('all')
 # fig, ax = plt.subplots(figsize=(8, 8), dpi=600)
 
-# var = input('Enter the variable name (e.g., "tp", "swr"): ")
+# var = input('Enter the variable name (e.g., "tp", "swr"): ')
 
 # mean_var(ax, var)
 
