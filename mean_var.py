@@ -51,19 +51,3 @@ def mean_var(ax, var, xlim=[-0.5, 0.5]):
     ax.yaxis.set_major_locator(MaxNLocator(nbins=5))  
 
     
-    # ax.set_xticklabels([])
-    # ax.set_yticklabels([])
-
-
-
-# plt.close('all')
-# fig, ax = plt.subplots(figsize=(8, 8), dpi=600)
-
-# var = input('Enter the variable name (e.g., "tp", "swr"): ')
-
-# mean_var(ax, var)
-
-# plt.tight_layout()
-
-# plt.savefig(f'/Users/ottodeng/Desktop/Fluctuation/ERA5SLP/fig2/mean_var_{var}.png')
-# # plt.show()

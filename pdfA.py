@@ -22,7 +22,6 @@ def pdfA(ax, var, SP, xlim=[-4, 4]):
 
     var_anomaly = var_data - np.nanmean(var_data, axis=0, keepdims=True) 
 
-    # SP = [5, 10, 15, 20]  # tau values
 
     for ii, sp in enumerate(SP):
         var_smoothed = smooth(var_anomaly, sp)
@@ -49,22 +48,3 @@ def pdfA(ax, var, SP, xlim=[-4, 4]):
         ax.set_yscale('log')
         ax.set_ylim(bottom=10**-3)
     ax.set_ylabel(r'PDF')
-
-
-# # Clear environment
-# plt.close('all')
-# plt.figure(dpi=800)
-
-
-
-# fig, axs = plt.subplots(2, 2, figsize=(10, 10))
-
-# pdfA(axs[0, 0], var)
-# pdfA(axs[0, 1], var)
-# pdfA(axs[1, 0], var)
-# pdfA(axs[1, 1], var)
-
-# # Adjust subplot spacing
-# plt.subplots_adjust(hspace=0.3, wspace=0.3)
-
-# plt.savefig(f'/Users/ottodeng/Desktop/Fluctuation/ERA5SLP/fig2/pdfA_{var.upper()}.png')
