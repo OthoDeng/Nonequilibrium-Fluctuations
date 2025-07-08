@@ -12,7 +12,7 @@ pdfA(axes[0][1],var, [10])
 mean_var(axes[0][2], var)
 
 
-pdfA(axes[1][0], var, [15])
+pdfA(axes[1][0], var, [15],)
 pdfA(axes[1][1], var, [20],[-3,3])
 mean_skewness(axes[1][2], var)
 
@@ -22,5 +22,5 @@ axes[0][2].text(-0.15, 1.05, 'b', transform=axes[0][2].transAxes,
                 fontsize=18, fontweight='bold', va='top', ha='left')
 
 plt.tight_layout()
-plt.savefig('/Users/ottodeng/Desktop/Fluctuation/ERA5SLP/fig2/combined_figure.png')
+plt.savefig(f'/Users/ottodeng/Desktop/Fluctuation/ERA5SLP/fig2/combined_figure_{var}.png')
 # plt.show()
