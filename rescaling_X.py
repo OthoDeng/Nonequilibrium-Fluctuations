@@ -139,7 +139,7 @@ def rescaling_X(ax, var,xlim=[-50, 50]):
         
         # 设置平滑参数
         smooth_params = [1, 5, 10, 15]
-        colors = ['#66C2A5', '#8DA0CB', '#3288BD', '#A6D9BF']
+        colors = ['gray',]
         
         # 对每个平滑参数进行处理
         for sp in smooth_params:
@@ -176,7 +176,7 @@ def rescaling_X(ax, var,xlim=[-50, 50]):
                     y[right_mask] = - (centers[right_mask] - m) * L1
                     
                     # 半对数图
-                    ax.semilogy(y, hist, color=colors[smooth_params.index(sp)], 
+                    ax.semilogy(y, hist, color='gray', 
                                label=f"SP={sp}" if year == selected_years[0] else "")
         
         # 添加标签
@@ -215,7 +215,7 @@ def rescaling_DX(ax, var, xlim=[-50, 50]):
                 
         # 设置平滑参数
         smooth_params = [1, 5, 10, 15]
-        colors = ['#66C2A5', '#8DA0CB', '#3288BD', '#A6D9BF']
+        colors = ['gray']
                 
                 # 第二个子图：Delta A的分布
         print("Processing Delta A distributions...")
@@ -252,16 +252,16 @@ def rescaling_DX(ax, var, xlim=[-50, 50]):
                     m, L1, L2 = fit_distribution(centers, hist)
                             
                     # 计算用于绘图的值
-            y = np.zeros_like(centers)
-            left_mask = centers < m
-            right_mask = centers >= m
+                    y = np.zeros_like(centers)
+                    left_mask = centers < m
+                    right_mask = centers >= m
                             
-            y[left_mask] = (centers[left_mask] - m) * L2
-            y[right_mask] = - (centers[right_mask] - m) * L1
+                    y[left_mask] = (centers[left_mask] - m) * L2
+                    y[right_mask] = - (centers[right_mask] - m) * L1
                             
-            # 半对数图
-            ax.semilogy(y, hist, color=colors[smooth_params.index(sp)], 
-               label=f"SP={sp}" if year == selected_years[1] else "")
+                    # 半对数图
+                    ax.semilogy(y, hist, color='gray', 
+                        label=f"SP={sp}" if year == selected_years[1] else "")
                 
                 # 添加标签
         ax.set_ylim(bottom=10**-5)
