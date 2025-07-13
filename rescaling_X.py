@@ -5,12 +5,14 @@ from matplotlib import rcParams
 import os
 from scipy.optimize import curve_fit
 from scipy.ndimage import uniform_filter
+from scipy.stats import gumbel_r
 
-# 设置matplotlib参数
-rcParams['text.usetex'] = True
-rcParams['font.family'] = 'serif'
-rcParams['font.serif'] = ['Computer Modern Roman']
-rcParams['font.size'] = 12
+
+# # 设置matplotlib参数
+# rcParams['text.usetex'] = True
+# rcParams['font.family'] = 'serif'
+# rcParams['font.serif'] = ['Computer Modern Roman']
+# rcParams['font.size'] = 12
 
 def calculate_weights(lats):
     return np.cos(np.deg2rad(lats))
@@ -260,8 +262,7 @@ def rescaling_DX(ax, var, xlim=[-50, 50]):
                     y[right_mask] = - (centers[right_mask] - m) * L1
                             
                     # 半对数图
-                    ax.semilogy(y, hist, color='gray', 
-                        label=f"SP={sp}" if year == selected_years[1] else "")
+                    ax.semilogy(y, hist, color='gray')
                 
                 # 添加标签
         ax.set_ylim(bottom=10**-5)

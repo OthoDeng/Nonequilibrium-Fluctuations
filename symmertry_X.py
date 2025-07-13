@@ -1,10 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import xarray as xr
-from scipy.interpolate import interp1d
-from scipy.optimize import least_squares
 from scipy.ndimage import uniform_filter
-import warnings
+
 
 def sym_X(ax, var, smooth_periods=[1, 5, 10, 15], 
              time_step=5, xlim=[-3, 9], ylim=[-3, 9]):
@@ -73,10 +71,10 @@ def sym_X(ax, var, smooth_periods=[1, 5, 10, 15],
                     y_vals = np.log(N1[valid_mask] / N2[valid_mask])
                     
                     # Plot on provided axis
-                    ax.plot(x_vals, y_vals, color='gray', alpha=0.7)
+                    ax.plot(x_vals, y_vals, color='gray', alpha=0.3)
             except:
                 continue
-    
+ 
     # Set axis properties
     ax.set_xlabel(r'$\alpha\Delta \beta(\beta_1\beta_2)^{-1}$')
     ax.set_ylabel(r'$\ln(f(\alpha+m)/f(-\alpha+m))$')
@@ -107,7 +105,7 @@ def sym_DX(ax, var, smooth_periods=[5, 10, 15,20], time_step=5,xlim=[-3, 9], yli
         TPS = smooth_data(TP, sp)
         YRS = YR[sp-1:]  # Adjusted years after smoothing
         
-        # Set time intervals (DT) similar to MATLAB code
+        # Set time intervals (DT) similar to MATLAB cod
         DT = np.arange(sp-1, len(YRS)-1, time_step)
         
         for dt in DT:
@@ -141,12 +139,10 @@ def sym_DX(ax, var, smooth_periods=[5, 10, 15,20], time_step=5,xlim=[-3, 9], yli
                         x_vals = a[valid_mask] * (L2 - L1)
                         y_vals = np.log(N1[valid_mask] / N2[valid_mask])
                         
-                        # Plot on provided axis (gray color as in MATLAB)
-                        ax.plot(x_vals, y_vals, color=[99/255, 99/255, 99/255], alpha=0.7)
+                        ax.plot(x_vals, y_vals, color='gray', alpha=0.3)
                 except:
                     continue
-    
-    # Set axis properties (same as MATLAB)
+
     ax.set_xlabel(r'$\alpha\Delta \beta(\beta_1\beta_2)^{-1}$')
     ax.set_ylabel(r'$\ln(f(\alpha+m)/f(-\alpha+m))$')
     ax.set_xlim(xlim)
