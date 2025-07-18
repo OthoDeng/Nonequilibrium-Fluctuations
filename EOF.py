@@ -3,22 +3,31 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from scipy.stats import pearsonr
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 
 ds = xr.open_dataset('/Users/ottodeng/Desktop/Fluctuation/ERA5SLP/combined_variables.nc')
 
-tp = ds['tp'] * 1000
-sst = ds['sst']
-w = ds['w']
-tcwv = ds['tcwv']
+a = ds['tp'] * 1000
+b = ds['viked']
+c = ds['t2m']
+d = ds['vimdf'] * 1000
 
+var_names = [
+'Total Precipitation',
+'Vertical integral of divergence of kinetic energy flux',
+'2m Temperature',
+'Vertical integral of divergence of moisture flux' ]
+
+var_units = ['mm/day', '', 'K', '']
 # Cordinates are: lat;lon; year
 
 # 选择纬度范围：南纬30度到北纬30度
 latitude_range = range(-30, 31)
-tp_subset = tp.sel(latitude=latitude_range)
-sst_subset = sst.sel(latitude=latitude_range)
-w_subset = w.sel(latitude=latitude_range)
-tcwv_subset = tcwv.sel(latitude=latitude_range)
+a_subset = a.sel(latitude=latitude_range)
+b_subset = b.sel(latitude=latitude_range)
+c_subset = c.sel(latitude=latitude_range)
+d_subset = d.sel(latitude=latitude_range)
 
 # 纬度加权函数
 def apply_latitude_weighting(data):
@@ -28,10 +37,10 @@ def apply_latitude_weighting(data):
     return data * weights
 
 # 对所有变量应用纬度加权
-tp_weighted = apply_latitude_weighting(tp_subset)
-sst_weighted = apply_latitude_weighting(sst_subset)
-w_weighted = apply_latitude_weighting(w_subset)
-tcwv_weighted = apply_latitude_weighting(tcwv_subset)
+a_weighted = apply_latitude_weighting(a_subset)
+b_weighted = apply_latitude_weighting(b_subset)
+c_weighted = apply_latitude_weighting(c_subset)
+d_weighted = apply_latitude_weighting(d_subset)
 
 # EOF分解函数
 def perform_eof(data, n_components=1):
@@ -64,9 +73,8 @@ def perform_eof(data, n_components=1):
     return eof_pattern, pc_time_series[:, 0], explained_variance
 
 # 对四个变量进行EOF分解
-variables = [tp_weighted, sst_weighted, w_weighted, tcwv_weighted]
-var_names = ['Total Precipitation', 'Sea Surface Temperature', 'Vertical Velocity', 'Total Column Water Vapor']
-var_units = ['mm/day', 'K', 'm/s', 'kg/m²']
+variables = [a_weighted,b_weighted, c_weighted,d_weighted]
+
 
 eof_results = []
 for var in variables:
@@ -74,22 +82,30 @@ for var in variables:
     eof_results.append((eof_pattern, pc_series, explained_var))
     # 创建图像
     fig = plt.figure(figsize=(20, 16))
-    fig.suptitle('EOF Analysis for Four Variables (30°S - 30°N)', fontsize=16, fontweight='bold')
+    fig.suptitle('EOF Analysis (30°S - 30°N)', fontsize=16, fontweight='bold')
 
     # 使用GridSpec调整子图比例
     import matplotlib.gridspec as gridspec
     gs = gridspec.GridSpec(4, 2, width_ratios=[2.5, 1])  # 第一列宽度为第二列2.5倍
+    
 
     for i, (eof_pattern, pc_series, explained_var) in enumerate(eof_results):
         # EOF模态
-        ax1 = fig.add_subplot(gs[i, 0])
+        ax1 = fig.add_subplot(gs[i, 0], projection=ccrs.PlateCarree())
         lon = variables[i].longitude.values
         lat = variables[i].latitude.values
-        im = ax1.contourf(lon, lat, eof_pattern, levels=20, cmap='RdBu_r', extend='both')
-        ax1.set_title(f'{var_names[i]} EOF1\n({explained_var:.1f}% variance)', fontsize=12)
+        im = ax1.contourf(lon, lat, eof_pattern, levels=20, cmap='RdBu_r', extend='both', transform=ccrs.PlateCarree())
+        
+        # 添加地理特征
+        ax1.add_feature(cfeature.COASTLINE, linewidth=0.5)
+        ax1.add_feature(cfeature.BORDERS, linewidth=0.3)
+        ax1.add_feature(cfeature.LAND, alpha=0.2, color='gray')
+        ax1.add_feature(cfeature.OCEAN, alpha=0.2, color='lightblue')
+        
+        ax1.set_title(f'{var_names[i]} EOF1',fontsize = 12)  #\n({explained_var:.1f}% variance)', fontsize=12
         ax1.set_xlabel('Longitude')
         ax1.set_ylabel('Latitude')
-        ax1.grid(True, alpha=0.3)
+        ax1.gridlines(draw_labels=True, alpha=0.3)
         cbar = plt.colorbar(im, ax=ax1, shrink=0.8)
         cbar.set_label(var_units[i])
 
@@ -97,8 +113,12 @@ for var in variables:
         ax2 = fig.add_subplot(gs[i, 1])
         time_coord = variables[0].year.values
         years = [str(t)[:4] for t in time_coord.astype(str)]
-        ax2.plot(range(len(pc_series)), pc_series, 'b-', linewidth=1.5)
-        ax2.axhline(y=0, color='k', linestyle='--', alpha=0.5)
+        
+        # 根据正负模态设置颜色
+        colors = ['red' if val > 0 else 'blue' for val in pc_series]
+        ax2.bar(range(len(pc_series)), pc_series, color=colors, alpha=0.7)
+        
+        # ax2.axhline(y=0, color='k', linestyle='-', alpha=0.5)
         ax2.set_title(f'{var_names[i]} PC1 Time Series', fontsize=12)
         ax2.set_xlabel('Time Index')
         ax2.set_ylabel('PC1 Amplitude')
